@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+OUTPUT_DIR="dist/bin"
+mkdir -p "dist/bin"
+mkdir -p "dist/tmp"
+
+OUTPUT_BASE="dist/tmp/output.rb"
+
+touch "$OUTPUT_BASE"
+
+cat lib/**/*.rb > "$OUTPUT_BASE"
+cat lib/*.rb >> "$OUTPUT_BASE"
+
+BINS=(zfs-auto-snapshot zfs-cleanup-snapshots zfs-snapshot-mysql)
+for bin in "${BINS[@]}"; do
+  echo "#!/usr/bin/env ruby" > "$OUTPUT_DIR/$bin"
+  echo "" >> "$OUTPUT_DIR/$bin"
+  cat "$OUTPUT_BASE" | \
+    grep -v "^require .*zfstools" | \
+    grep -v "^#!.*" | \
+    grep -v "^lib_dir.*" | \
+    grep -v "^\$LOAD_PATH.*" \
+    >> "$OUTPUT_DIR/$bin"
+  cat "bin/$bin" | \
+    grep -v "^require .*zfstools" | \
+    grep -v "^#!.*" | \
+    grep -v "^lib_dir.*" | \
+    grep -v "^\$LOAD_PATH.*" \
+    >> "$OUTPUT_DIR/$bin"
+done
